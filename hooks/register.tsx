@@ -265,6 +265,8 @@ async function loadCalendar($: $T, now: string): Promise<CalendarSection> {
 
 let isRefreshing = false
 let wantPlane = false
+// Set the first time the pane is drawn: only then is there anyone to fetch for.
+let hasDrawn = false
 
 // Every open session runs this mod, so fetched data is shared through $.store:
 // a session reuses what another fetched recently instead of asking again.
@@ -351,19 +353,17 @@ export const register: Register = (on, options) => {
   cfg = readConfig(options)
 
   on('session.start', async ($, e, next) => {
-    // Headless runs (claude -p, scripts, other agents' sessions) get nothing.
-    if (!e.isInteractive) return next(e)
-
     await $.command.register({
       name: 'mission',
-      description: 'Open Mission Control: PRTG alarms, your MRs and CI, Plane items due, today',
+      description: 'Open Mission Control: alarms, merge requests and CI, tasks due, today',
     })
-    // The desktop app docks it as a sidebar; elsewhere it waits for /mission.
-    if (e.surface === 'desktop') void openPane($)
-    void refresh($, true)
+    // The desktop app docks it as a sidebar; a terminal waits for /mission.
+    // A run with nothing to draw on (claude -p) never draws it, so never fetches.
+    if (e.surface !== 'terminal') void openPane($)
     let tick = 0
     $.clock.every(REFRESH_MS, () => {
       tick++
+      if (!hasDrawn) return
       void refresh($, tick % PLANE_EVERY_TICKS === 0)
     })
 
@@ -378,6 +378,11 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
+    if (!hasDrawn) {
+      hasDrawn = true
+      // Fetch outside the drawing, which may not write state.
+      $.clock.after(0, () => void refresh($, true))
+    }
     const table = $.ui.resolve(e)
     const { Box, Text, Button, Link } = table
     const Svg = 'Svg' in table ? table.Svg : undefined

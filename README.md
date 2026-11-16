@@ -42,7 +42,7 @@ Every source is optional. A section appears only when its option is set, in `/co
 - In the desktop app the pane opens by itself as a sidebar. In a terminal, type `/mission`.
 - It refreshes every 3 minutes, and Plane every 15 (Plane is paged project by project). **Refresh** and `/mission` fetch fresh data at once.
 - Several open sessions share what one of them fetched, so your servers are asked about once per cycle, not once per session.
-- Headless runs (`claude -p`, scripts, agents) load nothing and fetch nothing.
+- It fetches only once the pane has been drawn, so runs with nothing to draw on (`claude -p`, scripts) fetch nothing.
 - When the desktop app shrinks the pane to a widget, it shows a three-line glance.
 - Data goes only through your own MCP servers and `glab`. Nothing is sent anywhere else.
 

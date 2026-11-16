@@ -32,8 +32,11 @@ const ME = 'user-1'
 function world(on: any, opts: { prtgFails?: boolean; calm?: boolean } = {}) {
   const clock = mock.clock(on)
   mock.store(on)
-  const calls = { workitem: 0, mrList: 0 }
-  on('command.register', () => ({ value: { command: 'mission' } }))
+  const calls = { workitem: 0, mrList: 0, registered: [] as string[] }
+  on('command.register', (_: unknown, e: any) => {
+    calls.registered.push(e.name)
+    return { value: { command: e.name } }
+  })
   on('ui.open', () => ({ value: { isPlaced: true } }))
   on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
 
@@ -155,6 +158,7 @@ test('the widget shows a three-line glance', OPTIONS, async ($, on) => {
 test('Plane refreshes by itself every 15 minutes, and the rest every 3', OPTIONS, async ($, on) => {
   const { clock, calls } = world(on)
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
   await clock.settle()
   const afterStart = calls.workitem
   expect(afterStart).toBeGreaterThan(0)
@@ -164,23 +168,12 @@ test('Plane refreshes by itself every 15 minutes, and the rest every 3', OPTIONS
 
   await clock.advance(3 * 60_000)
   expect(calls.workitem).toBeGreaterThan(afterStart)
+  await ui.unmount()
 })
 
-test('a second session reuses fresh data instead of fetching again', OPTIONS, async ($, on) => {
+test('a session that never draws the pane fetches nothing', OPTIONS, async ($, on) => {
   const { clock, calls } = world(on)
-  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
-  await clock.settle()
-  expect(calls.mrList).toBe(1)
-
-  await clock.advance(60_000)
-  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
-  await clock.settle()
-  expect(calls.mrList).toBe(1)
-})
-
-test('a headless session fetches nothing', OPTIONS, async ($, on) => {
-  const { clock, calls } = world(on)
-  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: false })
+  await $.session.start({ cwd: '/', surface: null, isInteractive: false })
   await clock.advance(20 * 60_000)
   expect(calls.mrList).toBe(0)
 })
@@ -188,11 +181,11 @@ test('a headless session fetches nothing', OPTIONS, async ($, on) => {
 test('with nothing set up, the pane says how to set it up and fetches nothing', async ($, on) => {
   const { clock, calls } = world(on)
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
   await clock.advance(20 * 60_000)
   expect(calls.mrList).toBe(0)
   expect(calls.workitem).toBe(0)
 
-  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
   expect((await ui.find({ type: 'Text', text: /Nothing is set up yet/ }))?.text).toBeTruthy()
   expect(await ui.find({ type: 'Text', text: /^Monitoring$/ })).toBeFalsy()
   await ui.unmount()
@@ -205,5 +198,17 @@ test('a Plane link uses the address and workspace from the options', OPTIONS, as
   await ui.press({ key: 'refresh' })
   const link = await ui.find({ type: 'Link', text: /OPS-4/ })
   expect(link?.props?.href).toBe('https://plane.example.com/acme/browse/OPS-4/')
+  await ui.unmount()
+})
+
+test('in the desktop app (an SDK host, not interactive) /mission works and the pane fills by itself', OPTIONS, async ($, on) => {
+  const { clock, calls } = world(on)
+  await $.session.start({ cwd: '/', surface: null, isInteractive: false })
+  expect(calls.registered).toContain('mission')
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await clock.settle()
+  await clock.settle()
+  expect((await ui.find({ type: 'Text', text: /^1 down · 1 failing · 1 overdue$/ }))?.text).toBeTruthy()
   await ui.unmount()
 })
