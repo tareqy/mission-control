@@ -1,0 +1,6 @@
+{
+  "name": "mission-control",
+  "owner": { "name": "Tareq Yaghmour", "url": "https://github.com/tareqy" },
+  "description": "Mission Control, a Claude Code mod: one calm pane for alarms, merge requests, tasks and today's calendar.",
+  "plugins": [{ "name": "mission-control", "source": "./" }]
+}

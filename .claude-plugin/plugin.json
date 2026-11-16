@@ -1,0 +1,43 @@
+{
+  "name": "mission-control",
+  "version": "0.2.0",
+  "description": "A pane beside the chat with your monitoring alarms, merge requests and CI, tasks due, and today's calendar.",
+  "author": { "name": "Tareq Yaghmour", "url": "https://github.com/tareqy" },
+  "homepage": "https://github.com/tareqy/mission-control",
+  "repository": "https://github.com/tareqy/mission-control",
+  "license": "MIT",
+  "keywords": ["dashboard", "pane", "gitlab", "prtg", "plane", "calendar"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "prtgServer": {
+      "type": "string",
+      "title": "PRTG MCP server",
+      "description": "Name of an MCP server with a prtg_get_alarms tool, as /mcp lists it. Empty hides Monitoring.",
+      "default": ""
+    },
+    "gitlabHost": {
+      "type": "string",
+      "title": "GitLab host",
+      "description": "GitLab host that glab is signed in to, such as gitlab.com. Empty hides Merge requests.",
+      "default": ""
+    },
+    "planeUrl": {
+      "type": "string",
+      "title": "Plane web address",
+      "description": "Base address of your Plane instance, used for item links, such as https://app.plane.so.",
+      "default": ""
+    },
+    "planeServers": {
+      "type": "string",
+      "title": "Plane MCP servers",
+      "description": "Comma-separated MCP server names, one per Plane workspace. Empty hides Plane.",
+      "default": ""
+    },
+    "calendarServer": {
+      "type": "string",
+      "title": "Google Calendar MCP server",
+      "description": "Name of a Google Calendar MCP server with a list_events tool. Empty hides Today.",
+      "default": ""
+    }
+  }
+}
