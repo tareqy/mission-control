@@ -357,9 +357,7 @@ export const register: Register = (on, options) => {
       name: 'mission',
       description: 'Open Mission Control: alarms, merge requests and CI, tasks due, today',
     })
-    // The desktop app docks it as a sidebar; a terminal waits for /mission.
-    // A run with nothing to draw on (claude -p) never draws it, so never fetches.
-    if (e.surface !== 'terminal') void openPane($)
+    // Opens only on /mission, never by itself at session start.
     let tick = 0
     $.clock.every(REFRESH_MS, () => {
       tick++

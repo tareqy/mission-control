@@ -1,6 +1,6 @@
 {
   "name": "mission-control",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A pane beside the chat with your monitoring alarms, merge requests and CI, tasks due, and today's calendar.",
   "author": { "name": "Tareq Yaghmour", "url": "https://github.com/tareqy" },
   "homepage": "https://github.com/tareqy/mission-control",
